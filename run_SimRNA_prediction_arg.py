@@ -28,6 +28,10 @@ parser.add_argument("-n", "--runs", required=False, dest="runs", default=4, type
                         help="Number of runs [default = 4].")
 parser.add_argument("-r", "--restraints", required=False, dest="restraints", default="", type=str,
                         help="File with restraints [optional].")
+parser.add_argument("-Q", "--queue-system",choices=["SOE", "SLRUM"],required='--grant-name' or '-G' in sys.argv, dest="queue", default="", type=str,
+                        help="Type of Queue system [default = SOE]. Grant name is mandatory argument when this argument is used")
+parser.add_argument("-G", "--grant-name", required='-Q' or '--queue-system' in sys.argv , dest="grant", default="", type=str,
+                        help="Name of grant under which calculations are to be performed [required]. The queue system needs to be specified along with this argument")
 args = parser.parse_args()
 
 
@@ -42,7 +46,8 @@ E_NUM = args.replicas
 CONF_PATH = args.config
 PDB_PATH = args.PDB
 pdb_PATH = args.pdb
-
+QUEUE_SYS = args.queue
+GRANT = args.queue
 
 # chceck input files
 
@@ -201,6 +206,20 @@ for run_dir_name in run_dir_names:
             
         #print command
 	
+	if QUEUE_SYS == "SLRUM":
+            	print >>outfile,"#!/bin/bash -l"
+            	print >>outfile,"#SBATCH -J "+output_name
+            	print >>outfile,"#SBATCH --output \""+SimRNA_RUN_FILENAME+".stdout\""
+            	print >>outfile,"#SBATCH --error \""+SimRNA_RUN_FILENAME+".stderr\""
+            	print >>outfile,"#SBATCH -A \""+GRANT+"\""
+            	print >>outfile,"#SBATCH -p plgrid"
+            	print >>outfile,"#SBATCH -p standard"
+            	print >>outfile,"#SBATCH --mem 1600"
+            	print >>outfile,"#SBATCH -N 1"
+            	print >>outfile,"#SBATCH --tasks-per-node 1"
+            	print >>outfile,"#SBATCH --cpus-per-task 10"
+            	print >>outfile,"#SBATCH --time 72:00:00"
+
 	print >> outfile, command
 	
 	outfile.close()
@@ -220,8 +239,10 @@ for run_dir_name in run_dir_names:
 
 	SimRNA_RUN_FILENAME = "r_"+JOB_ID_NAME+"_"+run_dir_name #should be same as before, in previous loop
 	#exit(1)
-        os.system("qsub -cwd -q all.q -l h_vmem=300M -l mem_free=500M -pe mpi "+str(E_NUM)+" "+SimRNA_RUN_FILENAME)  
-        
+	if QUEUE_SYS == "SOE":
+            	os.system("qsub -cwd -q all.q -l h_vmem=300M -l mem_free=500M -pe mpi "+str(E_NUM)+" "+SimRNA_RUN_FILENAME)  
+	if QUEUE_SYS == "SLRUM":
+            	os.system("sbatch -n1 --account="+GRANT+" "+SimRNA_RUN_FILENAME)
 	os.chdir("..")
     else:
 	print >>sys.stderr, "directory: "+run_dir_name+" doesn't exist, script termination"

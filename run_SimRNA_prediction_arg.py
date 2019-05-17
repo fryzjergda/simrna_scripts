@@ -4,6 +4,7 @@
 #this script prepares and runs jobs, there will be one more for processing results
 # Modified by Tomasz Wirecki 30.11.2018
 # Script was adjusted to be used with SimRNA, Argparser was added instead of sys.args
+# Modified by Nithin to make it compatible to SOE and SLRUM
 
 import sys, os, shutil
 import argparse

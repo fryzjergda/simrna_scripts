@@ -9,7 +9,6 @@
 import sys, os, shutil
 import argparse
 
-
 parser = argparse.ArgumentParser(prog='run_SimRNA_prediction_arg', usage='%(prog)s [options]')
 parser.add_argument("-j", "--job", required=True, dest="job", type=str,
                         help="Name of jour job [required].")
@@ -37,6 +36,8 @@ args = parser.parse_args()
 
 
 WORKING_DIR = "WORKING_SPACE"
+SIMRNA_DATA_DIR = "../../../data"
+SIMRNA_BIN_PATH = "../../../bin/SimRNA "
 NUMBER_OF_RUNS = args.runs
 
 JOB_ID_NAME = args.job
@@ -48,7 +49,7 @@ CONF_PATH = args.config
 PDB_PATH = args.PDB
 pdb_PATH = args.pdb
 QUEUE_SYS = args.queue
-GRANT = args.queue
+GRANT = args.grant
 
 # chceck input files
 
@@ -96,11 +97,18 @@ if SEQ_PATH != "":
     SEQ_FILENAME = SEQ_PATH.split("/")[-1] #getting file name (when path is provided)
                         
 
+if(os.path.exists("data") == True):
+    os.system (" rm -rf data")
+    os.symlink(SIMRNA_DATA_DIR,"data")
+
 if(os.path.exists("data") == False):
+    os.symlink(SIMRNA_DATA_DIR,"data")
+'''    
     print >>sys.stderr, "requested directory (or symlink): data is missing (in current directory)"
     print >>sys.stderr, "this directory should containt energy function terms for SimRNA"
     print >>sys.stderr, "script termination"
     sys.exit(4)
+'''
 
 if(os.path.exists(WORKING_DIR) == False):
     print >>sys.stderr, "no directory "+WORKING_DIR+" which is required"
@@ -168,14 +176,14 @@ for run_dir_name in run_dir_names:
 	os.mkdir(run_dir_name)
 	os.chdir(run_dir_name)
 	print >>sys.stderr, "creating symlink 'data'"
-	os.symlink("../../../data","data")
+	os.symlink(SIMRNA_DATA_DIR,"data")
 
 	SimRNA_RUN_FILENAME = "r_"+JOB_ID_NAME+"_"+run_dir_name
 	print >>sys.stderr, "making SimRNA run file: "+SimRNA_RUN_FILENAME
 	outfile = open(SimRNA_RUN_FILENAME, "w")
 	output_name = JOB_ID_NAME+"_"+run_dir_name
 	
-	command = "../../../bin/SimRNA "
+	command = SIMRNA_BIN_PATH
 	
 	if CONF_PATH != "config.dat":
 	    command += "-c ../" +CONF_FILENAME + " "

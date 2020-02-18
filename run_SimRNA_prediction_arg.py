@@ -32,6 +32,8 @@ parser.add_argument("-Q", "--queue-system",choices=["SOE", "SLRUM"],required='--
                         help="Type of Queue system [default = SOE]. Grant name is mandatory argument when this argument is used")
 parser.add_argument("-G", "--grant-name", required='-Q' or '--queue-system' in sys.argv , dest="grant", default="", type=str,
                         help="Name of grant under which calculations are to be performed [required]. The queue system needs to be specified along with this argument")
+parser.add_argument("-q", "--queue-name", required='-Q' or '--queue-system' in sys.argv , dest="partition", default="", type=str,
+                        help="Name of partition under which calculations are to be performed [required]. The queue system needs to be specified along with this argument")
 args = parser.parse_args()
 
 
@@ -50,6 +52,7 @@ PDB_PATH = args.PDB
 pdb_PATH = args.pdb
 QUEUE_SYS = args.queue
 GRANT = args.grant
+PARTITION = args.partition
 
 # chceck input files
 
@@ -100,8 +103,7 @@ if SEQ_PATH != "":
 if(os.path.exists("data") == True):
     os.system (" rm -rf data")
     os.symlink(SIMRNA_DATA_DIR,"data")
-
-if(os.path.exists("data") == False):
+else:
     os.symlink(SIMRNA_DATA_DIR,"data")
 '''    
     print >>sys.stderr, "requested directory (or symlink): data is missing (in current directory)"
@@ -221,8 +223,7 @@ for run_dir_name in run_dir_names:
             	print >>outfile,"#SBATCH --output \""+SimRNA_RUN_FILENAME+".stdout\""
             	print >>outfile,"#SBATCH --error \""+SimRNA_RUN_FILENAME+".stderr\""
             	print >>outfile,"#SBATCH -A \""+GRANT+"\""
-            	print >>outfile,"#SBATCH -p plgrid"
-            	print >>outfile,"#SBATCH -p standard"
+            	print >>outfile,"#SBATCH -p "+PARTITION
             	print >>outfile,"#SBATCH --mem 1600"
             	print >>outfile,"#SBATCH -N 1"
             	print >>outfile,"#SBATCH --tasks-per-node 1"

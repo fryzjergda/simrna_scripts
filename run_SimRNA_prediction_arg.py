@@ -24,8 +24,8 @@ parser.add_argument("-S", "--secstruct", required=False, dest="ss", default="", 
                         help="File with secondary structure [optional].")
 parser.add_argument("-E", "--replicas", required=False, dest="replicas", default=10, type=int,
                         help="Number of replicas for each run [default = 10].")                        
-parser.add_argument("-n", "--runs", required=False, dest="runs", default=4, type=int,
-                        help="Number of runs [default = 4].")
+parser.add_argument("-n", "--runs", required=False, dest="runs", default=8, type=int,
+                        help="Number of runs [default = 8].")
 parser.add_argument("-r", "--restraints", required=False, dest="restraints", default="", type=str,
                         help="File with restraints [optional].")
 parser.add_argument("-Q", "--queue-system",choices=["SOE", "SLRUM"],required='--grant-name' or '-G' in sys.argv, dest="queue", default="", type=str,
@@ -34,6 +34,8 @@ parser.add_argument("-G", "--grant-name", required='-Q' or '--queue-system' in s
                         help="Name of grant under which calculations are to be performed [required]. The queue system needs to be specified along with this argument")
 parser.add_argument("-q", "--queue-name", required='-Q' or '--queue-system' in sys.argv , dest="partition", default="", type=str,
                         help="Name of partition under which calculations are to be performed [required]. The queue system needs to be specified along with this argument")
+parser.add_argument("-e", "--email--id", required=False , dest="email", default="", type=str,
+                        help="Email ID to send staus of jobs by the queue system [optional]. This argument will be ignored if queue system mentioned is not SLRUM")
 args = parser.parse_args()
 
 
@@ -53,6 +55,7 @@ pdb_PATH = args.pdb
 QUEUE_SYS = args.queue
 GRANT = args.grant
 PARTITION = args.partition
+EMAIL = args.email
 
 # chceck input files
 
@@ -229,6 +232,9 @@ for run_dir_name in run_dir_names:
             	print >>outfile,"#SBATCH --tasks-per-node 1"
             	print >>outfile,"#SBATCH --cpus-per-task 10"
             	print >>outfile,"#SBATCH --time 72:00:00"
+	if QUEUE_SYS == "SLRUM" and EMAIL != "":
+            	print >>outfile,"#SBATCH --mail-type=ALL"
+            	print >>outfile,"#SBATCH --mail-user="+EMAIL
 
 	print >> outfile, command
 	
